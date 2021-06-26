@@ -21,14 +21,24 @@ def set_args():
     return args 
 
 
-def folder_moniter(**file_md5):
+def folder_moniter(moniter_files):
+    file_md5 = dict()
     modified_files = []
+    
+    for md_file in moniter_files:
+        if md_file not in file_md5.keys():
+            file_md5[md_file] = " "
+            
+    del_keys =  list(set(file_md5.keys()) - set(moniter_files))
+    for key in del_keys:
+        del file_md5[key]
+    
     for file_path, md5_before in file_md5.items():
         md5_now = hashlib.md5(open(file_path).read().encode('utf-8')).hexdigest()
         if md5_now != md5_before:
             file_md5[file_path] = md5_now
             modified_files.append(file_path)
-    
+
     return modified_files, file_md5 
     
     
@@ -54,12 +64,11 @@ if __name__ == "__main__":
     
     # 获得dropbox数据库权限 init 
     dbx = dropbox.Dropbox(dropbox_access_token)
-    # init
-    file_md5 = {os.path.join(root_path, tmp): ' ' for tmp in os.listdir(root_path)}
     
     # moniter 
     while True:
-        modified_files, file_md5 = folder_moniter(**file_md5)
+        moniter_files = os.listdir(root_path)
+        modified_files, file_md5 = folder_moniter(moniter_files)
 
         pattern = re.compile(r"\(.*?.png\)")
         for file in modified_files: 

@@ -68,6 +68,7 @@ optional arguments:
 
 ## 其它
 ### TODO
+- [metadata extracter](publisher_list.md)
 
 ### 不足
 **不支持~文档保存怪~使用：**
