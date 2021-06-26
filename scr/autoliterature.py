@@ -128,4 +128,4 @@ if __name__ == "__main__":
                     f.write(''.join(new_lines))
         
         # print("----")
-        time.sleep((interval_time))
+        time.sleep((interval_time*20))

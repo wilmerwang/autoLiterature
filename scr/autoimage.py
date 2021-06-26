@@ -95,4 +95,4 @@ if __name__ == "__main__":
                     with open(file, "w") as f:
                         f.write(''.join(new_content))
                 
-        time.sleep((interval_time))
+        time.sleep((interval_time*20))
