@@ -3,6 +3,8 @@
 
 ![一个动图](doc/top.gif)
 
+**麻烦使用[该邀请链接Dropbox](https://www.dropbox.com/referrals/AADHfuWXiW9pgDQs2L1aWAjUILZWznjXs2U?src=global9)注册Dropbox帐号，邀请者和被邀请者帐号都会增加一些空间。**
+
 ## 特点
 - 自动抓取文献元信息，并下载文献
 - 自动上传文献到Dropbox，并生成Dropbox分享链接
@@ -44,7 +46,7 @@ optional arguments:
 
 ## 使用
 1. 获得Dropbox API 的 **access token** 
-    1. 注册[Dropbox](https://www.dropbox.com/), 在[App Console](https://www.dropbox.com/developers/apps)注册一个新的应用。
+    1. 注册[Dropbox](https://www.dropbox.com/referrals/AADHfuWXiW9pgDQs2L1aWAjUILZWznjXs2U?src=global9), 在[App Console](https://www.dropbox.com/developers/apps)注册一个新的应用。
     2. 进入应用中，选择`Permissions`选项，将`Files and folders`权限开到最大，比如勾上`files.metadata.write`, `files.content.write`, `sharing.write`, `file_requests.write`, `contacts.write`. 
     3. 选择应用中的`Settings`，勾选`Access token expiration`-->`No expiration`, 然后点`Generated access token` 生成一个永久**Access token**
 2. 选择一个存放**文献笔记**的文件夹作为程序监视对象，比如`./note`, 选择一个文件夹用来存放本地pdf,比如`./pdf`, 选择监控频率`t s/epoch`
