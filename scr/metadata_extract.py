@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*- 
 import os 
 from urllib.parse import urlparse 
-
+from urllib import request
 import requests 
 from bs4 import BeautifulSoup 
 
 
 def metadate_keys(path):
     site_name = urlparse(path).netloc
+    
+    # 如果是DOI号，获得DOI相对应的重定向网址
+    if site_name == '':
+        response = requests.get("https://doi.org/" + path)
+        path = response.url
+        site_name = urlparse(path).netloc
     
     keys_dict = dict()
     
@@ -29,10 +35,12 @@ def metadate_keys(path):
         keys_dict['publisher'] = "citation_journal_abbrev"
         keys_dict['pdf_url'] = "citation_pdf_url" 
     
-    return keys_dict
+    return keys_dict, path 
 
 
 def metadata_extracter(path):
+    metadata_keys, path = metadate_keys(path)
+    
     meta_result = dict()
     meta_result['url'] = path 
     
@@ -40,7 +48,6 @@ def metadata_extracter(path):
     soup = BeautifulSoup(response.text, "html5lib")
     metas = soup.find_all('meta', attrs={'name': True})
 
-    metadata_keys = metadate_keys(path)
     for meta in metas:
         if meta.attrs['name'] == metadata_keys['title']:
             meta_result['title'] = meta.attrs['content']

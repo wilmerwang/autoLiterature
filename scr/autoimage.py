@@ -21,8 +21,7 @@ def set_args():
     return args 
 
 
-def folder_moniter(moniter_files):
-    file_md5 = dict()
+def folder_moniter(moniter_files, file_md5):
     modified_files = []
     
     for md_file in moniter_files:
@@ -65,10 +64,13 @@ if __name__ == "__main__":
     # 获得dropbox数据库权限 init 
     dbx = dropbox.Dropbox(dropbox_access_token)
     
+    # init
+    file_md5 = dict()
+    
     # moniter 
     while True:
         moniter_files = os.listdir(root_path)
-        modified_files, file_md5 = folder_moniter(moniter_files)
+        modified_files, file_md5 = folder_moniter(moniter_files, file_md5)
 
         pattern = re.compile(r"\(.*?.png\)")
         for file in modified_files: 
