@@ -116,7 +116,7 @@ if __name__ == "__main__":
                                                                                                 meta_data['publisher'], 
                                                                                                 meta_data['date'], 
                                                                                                 meta_data['pdf_url_in_dropbox'],
-                                                                                                citation_path)
+                                                                                                meta_data['url'])
                         new_lines[-i-1] = new_line
                     # 
                     # else:
