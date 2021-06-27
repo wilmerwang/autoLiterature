@@ -3,6 +3,16 @@
 
 ![一个动图](doc/top.gif)
 
+**note.md被替换的几种情况：**
+```
+# 情况一, 文献DOI号
+- [10.1038/s41598-021-92475-7](10.1038/s41598-021-92475-7) 
+# 情况二，文献主页
+- [https://www.nature.com/articles/s41598-021-92475-7](https://www.nature.com/articles/s41598-021-92475-7)
+# 情况三，本地图片链接
+![](your_picture.png)
+```
+
 **麻烦使用[该邀请链接Dropbox](https://www.dropbox.com/referrals/AADHfuWXiW9pgDQs2L1aWAjUILZWznjXs2U?src=global9)注册Dropbox帐号，邀请者和被邀请者帐号都会增加一些空间。**
 
 ## 特点
@@ -15,7 +25,7 @@
 ## 安装
 1. 下载软件
 ```bash
-git clone 
+git clone https://github.com/WilmerWang/autoLiterature.git
 cd autoliterature
 ```
 
@@ -54,7 +64,7 @@ optional arguments:
     ```
     python main.py -p ./note -o ./pdf -k your_access_token -t 1
     ```
-    推荐后台运行
+    后台运行
     ```
     # Linux
     nohup python main.py -p ./note -o ./pdf -k your_access_token -t 1 &
@@ -68,7 +78,20 @@ optional arguments:
 
 ## 其它
 ### TODO
-- [metadata extracter](publisher_list.md)
+- 个人精力有限，请大家在[metadata_extract](scr/metadata_extract.py)中添加网站文献metadata解析关键字，并提交pull requests,修改方式如下
+    比如[www.nature.com](www.nature.com)出版的文献，随意找一篇文献[https://www.nature.com/articles/s41598-021-92475-7](https://www.nature.com/articles/s41598-021-92475-7),打开文献主页，右键查看源代码，查阅发现  
+
+    ![](doc/fig1.png)
+
+    于是添加如下一段到[scr/metadata_extract.py](scr/metadata_extract.py)中的`def metadate_keys(path):`函数的合适位置
+    ```python
+    elif site_name == "www.nature.com":
+        keys_dict['title'] = "citation_title"
+        keys_dict['date'] = "citation_online_date" 
+        keys_dict['publisher'] = "citation_journal_abbrev"
+        keys_dict['pdf_url'] = "citation_pdf_url" 
+    ```
+    更新[metadata extracter](publisher_list.md)
 
 ### 不足
 **不支持~文档保存怪~使用：**

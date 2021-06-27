@@ -34,6 +34,14 @@ def metadate_keys(path):
         keys_dict['date'] = "citation_date" 
         keys_dict['publisher'] = "citation_journal_abbrev"
         keys_dict['pdf_url'] = "citation_pdf_url" 
+    # 添加metadata解析网址
+    # elif site_name == "xxxx":
+    #     keys_dict['title'] = "xxx"
+    #     keys_dict['date'] = "xxx" 
+    #     keys_dict['publisher'] = "xxx"
+    #     keys_dict['pdf_url'] = "xxx"
+    else:
+        print("还未添加{}网站metadata解析".format(site_name))
     
     return keys_dict, path 
 
