@@ -342,6 +342,19 @@ class dropboxInteractor(object):
 
         return shared_path
 
+    def sharedlinks_files_list_folder(self, path):
+        files_sharedlinks_dict = {}
+        for entry in self.dbx.files_list_folder('').entries:
+            entry_path = entry.path_display
+            entry_shared_link = self.dbx.sharing_get_file_metadata(entry.path_display).preview_url
+            
+            sharedlinks_files_dict[entry_shared_link] = entry_path
+
+        return files_sharedlinks_dict
+
+    def del_file(self, path):
+        self.dbx.files_delete_v2(path)
+
 
 def note_modified(pattern_recog, md_file, **replace_dict):
     with open(md_file, 'r') as f:
@@ -354,8 +367,24 @@ def note_modified(pattern_recog, md_file, **replace_dict):
 
 
 class attachRemove(object):
-    def __init__(self):
-        pass
+    def __init__(self, md_file, attach_path, dbx):
+        self.files_sharedlinks_dict = dbx.sharedlinks_files_list_folder(attach_path)
+        self.md_file = md_file
+        self.dbx = dbx 
 
+    def _pattern(self, pattern):
+        return re.compile(pattern)
 
+    def _removed_attachments(self, pattern):
+        with open(self.md_file, 'r') as f:
+            string = f.read()
+
+        pattern_rec = self._pattern(pattern)
+        
+        m = pattern_rec.findall(string)
+
+        removed_attachments = list(set(self.files_sharedlinks_dict.keys() - set(m)))
+
+        for attach in removed_attachments:
+            self.dbx.del_file(attach)
 
