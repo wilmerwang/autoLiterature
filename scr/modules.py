@@ -44,9 +44,8 @@ class folderMoniter(object):
         self.file_md5.update(zip(added_files, [' ']*len(added_files)))
 
         removed_files = list(set(self.file_md5.keys()) - set(files))
-        for remove_file in removed_files:
-            if self.file_md5.has_key(remove_file):
-                del self.file_md5[removed_file]
+        for removed_file in removed_files:
+            del self.file_md5[removed_file]
 
         modified_items = dict()
         for file_path, md5_before in self.file_md5.items():

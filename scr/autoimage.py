@@ -57,7 +57,7 @@ def main():
                 # Modified note
                 note_modified(pattern_recog, md_file, **replace_dict)
 
-        time.sleep((interval_time*20))
+        time.sleep((interval_time))
 
 
 if __name__ == "__main__":
