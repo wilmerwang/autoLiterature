@@ -8,7 +8,7 @@ try:
     from urllib import quote
 except ImportError:
     from urllib.parse import quote
-
+from urllib import parse
 
 import feedparser
 from unidecode import unidecode
@@ -339,18 +339,22 @@ class dropboxInteractor(object):
 
     def generate_shared_url(self, file_path):
         shared_path = self.dbx.sharing_create_shared_link(file_path).url
+        # shared_path = self.dbx.sharing_get_file_metadata(file_path).preview_url
+        shared_path = parse.unquote(shared_path)
 
         return shared_path
 
     def sharedlinks_files_list_folder(self, path):
-        files_sharedlinks_dict = {}
-        for entry in self.dbx.files_list_folder('').entries:
+        sharedlinks_files_dict = {}
+        for entry in self.dbx.files_list_folder(path).entries:
             entry_path = entry.path_display
-            entry_shared_link = self.dbx.sharing_get_file_metadata(entry.path_display).preview_url
+            # entry_shared_link = self.dbx.sharing_get_file_metadata(entry_path).preview_url
+            entry_shared_link = self.dbx.sharing_create_shared_link(entry_path).url
+            entry_shared_link = parse.unquote(entry_shared_link)
             
             sharedlinks_files_dict[entry_shared_link] = entry_path
 
-        return files_sharedlinks_dict
+        return sharedlinks_files_dict
 
     def del_file(self, path):
         self.dbx.files_delete_v2(path)

@@ -45,11 +45,15 @@ def main():
 
                 for image in m:
                     image_path = image.split('(')[-1].split(')')[0]
-                    print(image_path)
+                    image_path = os.path.join(ROOT, image_path)
 
                     # Upload attachment and generate shared link
-                    with open(os.path.join(ROOT, image_path), 'rb') as f:
+                    with open(image_path, 'rb') as f:
                         dbx.files_upload(f.read(), '/img/'+os.path.split(image_path)[-1])
+
+                    if not os.path.split(image_path)[0].endswith('/img'):
+                        os.remove(image_path)  
+
                     img_shared_link = dbx.generate_shared_url('/img/'+os.path.split(image_path)[-1]).replace('www', 'dl')
 
                     replace_dict[image] = "(" + img_shared_link + ")"
