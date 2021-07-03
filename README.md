@@ -77,6 +77,11 @@ optional arguments:
     1. 当文档中出现`- [DOI]`或者`- [Arxiv_id]`，比如`- [10.1038/s41598-021-92475-7]`的时候，autoLiterature会自动抓取文献信息，下载pdf并上传到Dropbox,写入文献笔记。
     2. 当文献中出现`![](*.png)`的时候，autoLiterature会将本地或者服务器`HOME/Dropbox/*.png`图像推送到Dropbox，并生成共享链接来替换本地链接。
 
+5. 同步attachment和note文件链接
+    ```bash
+    python scr/autosync.py
+    ```
+
 ## 其它
 ### TODO
 
