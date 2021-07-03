@@ -53,8 +53,11 @@ def main():
 
                     # Upload attachment and generate shared link
                     pdf_name = bib_dict['year'] + '_' + bib_dict['title'] + '.pdf'
-                    dbx.files_upload(pdf_dict['pdf'], '/pdf/'+pdf_name)
-                    pdf_shared_link = dbx.generate_shared_url('/pdf/'+pdf_name)
+                    if "pdf" in pdf_dict:
+                        dbx.files_upload(pdf_dict['pdf'], '/pdf/'+pdf_name)
+                        pdf_shared_link = dbx.generate_shared_url('/pdf/'+pdf_name)
+                    else:
+                        pdf_shared_link = "Please manually add the attachment link"
 
                     replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({}))".format(
                         bib_dict['title'], bib_dict["author"].split(" and ")[0], bib_dict['journal'], 
