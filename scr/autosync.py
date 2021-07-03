@@ -3,6 +3,7 @@ import os
 import argparse
 
 import re 
+from urllib import parse
 
 from modules import dropboxInteractor
 
@@ -27,6 +28,7 @@ def synchronization(root_path, attachment_path, regular_rule, dbx, img=False):
         with open(md_file, 'r') as f:
             content = f.read()
         m = pattern.findall(content)
+        m = [parse.unquote(i) for i in m]
 
         if img:
             sharedlinks_mdfiles += [i.replace('//dl', '//www') for i in m]
