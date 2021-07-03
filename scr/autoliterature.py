@@ -57,7 +57,11 @@ def main():
                         dbx.files_upload(pdf_dict['pdf'], '/pdf/'+pdf_name)
                         pdf_shared_link = dbx.generate_shared_url('/pdf/'+pdf_name)
                     else:
-                        pdf_shared_link = "Please manually add the attachment link"
+                        pdf_shared_link = "Please manually add the attachment link."
+
+                    for key in ["title", "author", "journal", "year", "url"]:
+                        if key not in bib_dict:
+                            bib_dict[key] = "Please manually add this value."
 
                     replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({}))".format(
                         bib_dict['title'], bib_dict["author"].split(" and ")[0], bib_dict['journal'], 

@@ -47,16 +47,19 @@ def main():
                     image_path = image.split('(')[-1].split(')')[0]
                     image_path = os.path.join(ROOT, image_path)
 
-                    # Upload attachment and generate shared link
-                    with open(image_path, 'rb') as f:
-                        dbx.files_upload(f.read(), '/img/'+os.path.split(image_path)[-1])
+                    if os.path.exists(image_path):
+                        # Upload attachment and generate shared link
+                        with open(image_path, 'rb') as f:
+                            dbx.files_upload(f.read(), '/img/'+os.path.split(image_path)[-1])
 
-                    if not os.path.split(image_path)[0].endswith('/img'):
-                        os.remove(image_path)  
+                        if not os.path.split(image_path)[0].endswith('/img'):
+                            os.remove(image_path)  
 
-                    img_shared_link = dbx.generate_shared_url('/img/'+os.path.split(image_path)[-1]).replace('www', 'dl')
+                        img_shared_link = dbx.generate_shared_url('/img/'+os.path.split(image_path)[-1]).replace('www', 'dl')
 
-                    replace_dict[image] = "(" + img_shared_link + ")"
+                        replace_dict[image] = "(" + img_shared_link + ")"
+                    else:
+                        replace_dict[image] = "(There is not this path: " + image_path + ")"
 
                 # Modified note
                 note_modified(pattern_recog, md_file, **replace_dict)
