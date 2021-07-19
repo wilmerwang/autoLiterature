@@ -85,6 +85,8 @@ optional arguments:
 ## 其它
 ### TODO
 
+- [ ] 添加文章引用次数
+
 ### 建议
 - Dropbox，Arxiv, Sci-hub貌似国内网络都不太好，建议配置一个proxychains。`proxychains python main.py -p * -k * -t *`
 
