@@ -52,6 +52,9 @@ def main():
                     pdf_dict = url_download.fetch(literature_id)
 
                     # Upload attachment and generate shared link
+                    if "\n" in bib_dict["title"]:
+                        bib_dict["title"] = re.sub(r' *\n *', ' ', bib_dict["title"])
+                        
                     pdf_name = bib_dict['year'] + '_' + bib_dict['title'] + '.pdf'
                     if "pdf" in pdf_dict:
                         dbx.files_upload(pdf_dict['pdf'], '/pdf/'+pdf_name)
