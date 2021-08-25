@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor as Executor
 
 FILE_PATH = os.path.abspath(os.path.dirname(__file__))
 
+
 def set_args():
     parser = argparse.ArgumentParser(description='autoLiterature')
     parser.add_argument('-p', '--root_path', type=str, default=None,
@@ -18,11 +19,13 @@ def set_args():
     
     return args 
 
+
 def autoliter(root_path, dropbox_access_token, interval_time):
     os.system("python {}/scr/autoliterature.py -p {} -k {} -t {}".format(FILE_PATH,
                                                                          root_path,
                                                                          dropbox_access_token,
                                                                          interval_time))
+
 
 def autoimg(root_path, dropbox_access_token, interval_time):
     os.system("python {}/scr/autoimage.py -p {} -k {} -t {}".format(FILE_PATH,
@@ -40,6 +43,7 @@ def main():
     with Executor(max_workers=2) as executor: 
         task1 = executor.submit(autoliter, root_path, dropbox_access_token, interval_time)
         task2 = executor.submit(autoimg,root_path, dropbox_access_token, interval_time)
+
 
 if __name__ == "__main__":
     main()
