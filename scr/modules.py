@@ -288,7 +288,13 @@ class urlDownload(object):
         """
         res = self.sess.get(self.base_url + identifier, verify=False)
         s = self._get_soup(res.content)
-        iframe = s.find('iframe')
+
+        embed_names = ['iframe', 'embed']
+        for embed_name in embed_names:
+            iframe = s.find(embed_name)
+            if iframe != None:
+                break 
+        # iframe = s.find('iframe')
 
         if iframe != None:
             if iframe.get('src').startswith('//'):
