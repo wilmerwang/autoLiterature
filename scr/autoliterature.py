@@ -48,33 +48,46 @@ def main():
                     literature_id = literature.split('[')[-1].split(']')[0]
                     
                     # Fetch data
-                    bib_dict = meta_extracter.id2bib(literature_id)
-                    pdf_dict = url_download.fetch(literature_id)
+                    try:
+                        bib_dict = meta_extracter.id2bib(literature_id)
+                        # print(bib_dict)
+                        if "pdf_link" in bib_dict.keys():
+                            pdf_dict = url_download.fetch(bib_dict["pdf_link"])
+                            if not pdf_dict:
+                                pdf_dict = url_download.fetch(literature_id)
+                        else:
+                            pdf_dict = url_download.fetch(literature_id)
 
-                    # Upload attachment and generate shared link
-                    if "\n" in bib_dict["title"]:
-                        bib_dict["title"] = re.sub(r' *\n *', ' ', bib_dict["title"])
-                        
-                    pdf_name = bib_dict['year'] + '_' + bib_dict['title'] + '.pdf'
-                    if "pdf" in pdf_dict:
-                        dbx.files_upload(pdf_dict['pdf'], '/pdf/'+pdf_name)
-                        pdf_shared_link = dbx.generate_shared_url('/pdf/'+pdf_name)
-                    else:
-                        pdf_shared_link = "Please manually add the attachment link."
+                        # Upload attachment and generate shared link
+                        if "\n" in bib_dict["title"]:
+                            bib_dict["title"] = re.sub(r' *\n *', ' ', bib_dict["title"])
+                            
+                        pdf_name = bib_dict['year'] + '_' + bib_dict['title'] + '.pdf'
+                        if pdf_dict:
+                            dbx.files_upload(pdf_dict['pdf'], '/pdf/'+pdf_name)
+                            pdf_shared_link = dbx.generate_shared_url('/pdf/'+pdf_name)
+                        else:
+                            pdf_shared_link = "Please manually add the attachment link."
 
-                    for key in ["title", "author", "journal", "year", "url"]:
-                        if key not in bib_dict:
-                            bib_dict[key] = "Please manually add this value."
+                        if 'cited_count' in bib_dict.keys():
+                            replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({})), (Citations **{}**).".format(
+                                bib_dict['title'], bib_dict["author"].split(" and ")[0], bib_dict['journal'], 
+                                bib_dict['year'], pdf_shared_link, bib_dict['url'], bib_dict["cited_count"]
+                                )
+                        else:
+                            replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({})).".format(
+                                bib_dict['title'], bib_dict["author"].split(" and ")[0], bib_dict['journal'], 
+                                bib_dict['year'], pdf_shared_link, bib_dict['url']
+                                )
 
-                    replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({}))".format(
-                        bib_dict['title'], bib_dict["author"].split(" and ")[0], bib_dict['journal'], 
-                        bib_dict['year'], pdf_shared_link, bib_dict['url']
-                        )
-
-                    replace_dict[literature] = replaced_literature
+                        replace_dict[literature] = replaced_literature
+                    except:
+                        print("")
+                        # replace_dict[literature] = literature
 
                 # Modified note
-                note_modified(pattern_recog, md_file, **replace_dict)
+                if replace_dict:
+                    note_modified(pattern_recog, md_file, **replace_dict)
 
         time.sleep((interval_time))
 

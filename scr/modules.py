@@ -14,7 +14,7 @@ import feedparser
 from unidecode import unidecode
 import requests 
 from bs4 import BeautifulSoup 
-import bibtexparser
+# import bibtexparser
 from retrying import retry
 import dropbox
 
@@ -67,11 +67,15 @@ class patternRecognizer(object):
     def findall(self, string):
         return self.pattern.findall(string)
 
-    def multiple_replace(self, string, **replace_dict):
-        def replace_(matched):
-            return replace_dict[matched.group(0)]
+    def multiple_replace(self, content, **replace_dict):
+        def replace_(value):
+            match = value.group()
+            if match in replace_dict.keys():
+                return replace_dict[match]
+            else:
+                return match+" **Not Correct, Check it**"
         
-        replace_content = self.pattern.sub(replace_, string)
+        replace_content = self.pattern.sub(replace_, content)
         
         return replace_content
         
@@ -90,7 +94,7 @@ class metaExtracter(object):
     def _classify(self, identifier):
         """
         Classify the type of identifier:
-        pmid - PubMed ID
+        arxivId - arxivId
         doi - digital object identifier
         """
         if self.check_string(r'10\.[0-9]{4}/.*', identifier):
@@ -100,28 +104,51 @@ class metaExtracter(object):
 
     def doi2bib(self, doi):
         bare_url = "http://api.crossref.org/"
-        url = "{}works/{}/transform/application/x-bibtex"
+        # url = "{}works/{}/transform/application/x-bibtex"
+        # TODO: url cannot return journal name
+        url = "{}works/{}"
         url = url.format(bare_url, doi)
-        r = requests.get(url)
-        found = False if r.status_code != 200 else True
-        bib = str(r.content, "utf-8")
+        
+        try:
+            r = requests.get(url)
+            # found = False if r.status_code != 200 else True
+            # bib = str(r.content, "utf-8")
 
-        if found:
-            bib_database = bibtexparser.loads(bib)
-            return bib_database.entries[0]
-        else:
-            raise "DOI: {} is error.".format(doi)
+            # if found:
+            # bib_database = bibtexparser.loads(bib)
+            # return bib_database.entries[0]
+            bib = r.json()['message']
+            pub_date = [str(i) for i in bib['published-online']["date-parts"][0]]
+            pub_date = '-'.join(pub_date)
+
+            authors = ' and '.join([i["family"]+" "+i['given'] for i in bib['author'] if "family" and "given" in i.keys()])
+            
+            bib_dict = {
+                "title": bib['title'][0],
+                "author": authors,
+                "journal": bib['short-container-title'][0],
+                "year": pub_date,
+                "url": bib["URL"],
+                "pdf_link": bib["link"][0]["URL"],
+                "cited_count": bib["is-referenced-by-count"]
+            }
+            
+            return bib_dict
+        except:
+            logger.info("DOI: {} is error.".format(doi))
 
     def arxivId2bib(self, arxivId):
         bare_url = "http://export.arxiv.org/api/query"
 
         params = "?search_query=id:"+quote(unidecode(arxivId))
-        result = feedparser.parse(bare_url + params)
-        items = result.entries
-        found = len(items) > 0
+        
+        try:
+            result = feedparser.parse(bare_url + params)
+            items = result.entries
+            # found = len(items) > 0
 
-        item = items[0]
-        if found:
+            item = items[0]
+            # if found:
             if "arxiv_doi" in item:
                 doi = item["arxiv_doi"]
                 bib_dict = self.doi2bib(doi)
@@ -152,7 +179,9 @@ class metaExtracter(object):
                     "ENTRYTYPE": "article"
                 }
 
-        return bib_dict 
+            return bib_dict 
+        except:
+            logger.info("DOI: {} is error.".format(arxivId))
 
     def id2bib(self, identifier):
         id_type = self._classify(identifier)
@@ -174,10 +203,11 @@ class urlDownload(object):
 
     def _get_available_scihub_urls(self):
         '''
-        Finds available scihub urls via https://sci-hub.now.sh/
+        Finds available scihub urls via https://lovescihub.wordpress.com/
         '''
         urls = []
-        res = requests.get('https://sci-hub.now.sh/')
+        # res = requests.get('https://sci-hub.now.sh/')
+        res = requests.get('https://lovescihub.wordpress.com/')
         s = self._get_soup(res.content)
         for a in s.find_all('a', href=True):
             if 'sci-hub.' in a['href']:
@@ -191,16 +221,6 @@ class urlDownload(object):
         self.base_url = self.available_base_url_list[0] + '/'
         logger.info("I'm changing to {}".format(self.available_base_url_list[0]))
 
-    def set_proxy(self, proxy):
-        '''
-        set proxy for session
-        :param proxy_dict:
-        :return:
-        '''
-        if proxy:
-            self.sess.proxies = {
-                "http": proxy,
-                "https": proxy, }
 
     def check_string(self, re_exp, str):
         res = re.search(re_exp, str)
@@ -209,20 +229,20 @@ class urlDownload(object):
         else:
             return False
 
-    @retry(wait_random_min=100, wait_random_max=1000, stop_max_attempt_number=10)
-    def download(self, identifier, destination='', path=None):
-        """
-        Downloads a paper from sci-hub given an indentifier (DOI, PMID, URL).
-        Currently, this can potentially be blocked by a captcha if a certain
-        limit has been reached.
-        """
-        data = self.fetch(identifier)
+    # @retry(wait_random_min=100, wait_random_max=1000, stop_max_attempt_number=10)
+    # def download(self, identifier, destination='', path=None):
+    #     """
+    #     Downloads a paper from sci-hub given an indentifier (DOI, PMID, URL).
+    #     Currently, this can potentially be blocked by a captcha if a certain
+    #     limit has been reached.
+    #     """
+    #     data = self.fetch(identifier)
 
-        if not 'err' in data:
-            self._save(data['pdf'],
-                       os.path.join(destination, path if path else data['name']))
+    #     if not 'err' in data:
+    #         self._save(data['pdf'],
+    #                    os.path.join(destination, path if path else data['name']))
 
-        return data
+    #     return data
 
     def fetch(self, identifier):
         """
@@ -241,32 +261,16 @@ class urlDownload(object):
             res = self.sess.get(url, verify=False)
 
             if res.headers['Content-Type'] != 'application/pdf':
-                self._change_base_url()
+                # self._change_base_url()
                 logger.info('Failed to fetch pdf with identifier %s '
                                            '(resolved url %s) due to captcha' % (identifier, url))
-                raise CaptchaNeedException('Failed to fetch pdf with identifier %s '
-                                           '(resolved url %s) due to captcha' % (identifier, url))
-                # return {
-                #     'err': 'Failed to fetch pdf with identifier %s (resolved url %s) due to captcha'
-                #            % (identifier, url)
-                # }
             else:
                 return {
                     'pdf': res.content,
                     'url': url
                 }
-
-        except requests.exceptions.ConnectionError:
-            logger.info('Cannot access {}, changing url'.format(self.available_base_url_list[0]))
-            self._change_base_url()
-
-        except requests.exceptions.RequestException as e:
-            logger.info('Failed to fetch pdf with identifier %s (resolved url %s) due to request exception.'
-                       % (identifier, url))
-            return {
-                'err': 'Failed to fetch pdf with identifier %s (resolved url %s) due to request exception.'
-                       % (identifier, url)
-            }
+        except:
+            logger.info("")
 
     def _get_direct_url(self, identifier):
         """
@@ -294,13 +298,11 @@ class urlDownload(object):
             iframe = s.find(embed_name)
             if iframe != None:
                 break 
-        # iframe = s.find('iframe')
 
-        if iframe != None:
-            if iframe.get('src').startswith('//'):
-                return 'https:' + iframe.get('src')
-            else:
-                return iframe.get('src')
+        if iframe.get('src').startswith('//'):
+            return 'https:' + iframe.get('src')
+        else:
+            return iframe.get('src')
 
     def _classify(self, identifier):
         """
@@ -322,12 +324,12 @@ class urlDownload(object):
         else:
             return 'arxivId'
 
-    def _save(self, data, path):
-        """
-        Save a file give data and a path.
-        """
-        with open(path, 'wb') as f:
-            f.write(data)
+    # def _save(self, data, path):
+    #     """
+    #     Save a file give data and a path.
+    #     """
+    #     with open(path, 'wb') as f:
+    #         f.write(data)
 
     def _get_soup(self, html):
         """
