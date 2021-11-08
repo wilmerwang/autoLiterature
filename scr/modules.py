@@ -118,15 +118,20 @@ class metaExtracter(object):
             # bib_database = bibtexparser.loads(bib)
             # return bib_database.entries[0]
             bib = r.json()['message']
-            pub_date = [str(i) for i in bib['published-online']["date-parts"][0]]
+            pub_date = [str(i) for i in bib['published']["date-parts"][0]]
             pub_date = '-'.join(pub_date)
 
             authors = ' and '.join([i["family"]+" "+i['given'] for i in bib['author'] if "family" and "given" in i.keys()])
-            
+
+            if bib['short-container-title']:
+                journal = bib['short-container-title'][0]
+            else:
+                journal = bib['container-title'][0]
+
             bib_dict = {
                 "title": bib['title'][0],
                 "author": authors,
-                "journal": bib['short-container-title'][0],
+                "journal": journal,
                 "year": pub_date,
                 "url": bib["URL"],
                 "pdf_link": bib["link"][0]["URL"],
@@ -348,7 +353,7 @@ class dropboxInteractor(object):
     def generate_shared_url(self, file_path):
         shared_path = self.dbx.sharing_create_shared_link(file_path).url
         # shared_path = self.dbx.sharing_get_file_metadata(file_path).preview_url
-        shared_path = parse.unquote(shared_path)
+        # shared_path = parse.unquote(shared_path)
 
         return shared_path
 
