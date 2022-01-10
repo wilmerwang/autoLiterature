@@ -79,7 +79,7 @@ optional arguments:
 
 5. 同步attachment和note文件链接
     ```bash
-    python scr/autosync.py
+    python scr/autosync.py -p ../note -k your_access_token
     ```
 
 ## 其它
