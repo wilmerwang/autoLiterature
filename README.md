@@ -1,5 +1,9 @@
 # autoLiterature
-**autoLiterature**是一个基于Dropbox和Python的自动文献管理器。Inspired by [Mu Li](https://www.bilibili.com/video/BV1nA41157y4). 
+**autoLiterature**是一个基于Dropbox和Python的自动文献管理器。Inspired by [Mu Li](https://www.bilibili.com/video/BV1nA41157y4).   
+
+**重要：**  
+- [autoLiter_web](https://github.com/WilmerWang/autoLiter_web)是一个类似的web软件。
+- 该项目的自动监控会被更新为手动替换
 
 ![一个动图](doc/top.gif)
 
@@ -84,7 +88,8 @@ optional arguments:
 
 ## 其它
 ### TODO
-- [ ] 做成类似有道云笔记软件（写文献笔记发现开了太多md文件，很杂乱。并且希望后端在自己想pull文献的时候才跑，平常不跑）
+- [x] [web版本](https://github.com/WilmerWang/autoLiter_web)
+- [ ] ~~做成类似有道云笔记软件（写文献笔记发现开了太多md文件，很杂乱。并且希望后端在自己想pull文献的时候才跑，平常不跑）~~使用vscode方便管理
 - [x] 添加文章引用次数
 - [x] enhance 对错误ID的鲁棒性
 
