@@ -1,36 +1,13 @@
 import os 
-import hashlib
+import logging
 import re 
+from tqdm import tqdm 
+from .downloads import get_paper_info_from_paperid, get_paper_pdf_from_paperid
 
-class folderMoniter(object):
-    def __init__(self, folder_path):
-        self.folder_path = folder_path
+logging.basicConfig()
+logger = logging.getLogger('utils')
+logger.setLevel(logging.INFO)
 
-        self.file_md5 = dict()
-
-    def _files_in_folder(self):
-        return [os.path.join(self.folder_path, p) for p in os.listdir(self.folder_path)]
-
-    def file_md5_update(self):
-        files = self._files_in_folder()
-
-        added_files = list(set(files) - set(self.file_md5.keys()))
-        self.file_md5.update(zip(added_files, [' ']*len(added_files)))
-
-        removed_files = list(set(self.file_md5.keys()) - set(files))
-        for removed_file in removed_files:
-            del self.file_md5[removed_file]
-
-        modified_items = dict()
-        for file_path, md5_before in self.file_md5.items():
-            md5_now = hashlib.md5(open(file_path).read().encode('utf-8')).hexdigest()
-            if md5_now != md5_before:
-                self.file_md5[file_path] = md5_now
-                modified_items[file_path] = md5_now
-
-        return modified_items 
-    
-    
 
 class patternRecognizer(object):
     def __init__(self, regular_rule):
@@ -92,3 +69,73 @@ def get_pdf_paths_from_notes(md_root, reg):
         pdf_paths_from_notes.extend(m)
 
     return pdf_paths_from_notes
+
+
+def get_pdf_paths_from_notes_dict(md_root, reg):
+    pdf_paths_from_notes_dict = {}
+    if os.path.isdir(md_root):
+        md_files = []
+        for root, _, files in os.walk(md_root):
+            for file in files:
+                if file.lower().endswith('md') or file.lower().endswith('markdown'):
+                    md_files.append(os.path.join(root, file))
+    
+        for md_file in md_files:
+            with open(md_file, 'r') as f:
+                content = f.read()
+            m = reg.findall(content)
+            m = [i.split("(")[-1].split(')')[0] for i in m]
+            pdf_paths_from_notes_dict[md_file] = m
+    else:
+        with open(md_root, 'r') as f:
+            content = f.read()
+        m = reg.findall(content)
+        m = [i.split("(")[-1].split(')')[0] for i in m]
+        pdf_paths_from_notes_dict[md_root] = m
+            
+    return pdf_paths_from_notes_dict
+
+
+def classify_identifier(identifier):
+    """Not need to download PDF file 
+    """
+    if identifier.endswith("}}"):
+        return True 
+    else: 
+        return False 
+
+
+def get_update_content(m, note_file, pdfs_path, proxy):
+    
+    replace_dict = dict()
+    for literature in tqdm(m):
+        pdf = classify_identifier(literature)
+        
+        literature_id = literature.split('{')[-1].split('}')[0]
+        bib = get_paper_info_from_paperid(literature_id, proxy=proxy)
+        
+        try:
+            pdf_name = '_'.join(bib['title'].split(' ')) + '.pdf'
+            pdf_path = os.path.join(pdfs_path, pdf_name)
+            
+            if pdf:
+                if not os.path.exists(pdf_path):
+                    get_paper_pdf_from_paperid(literature_id, pdf_path, direct_url=bib['pdf_link'], proxy=proxy)
+                    if not os.path.exists(pdf_path):
+                        get_paper_pdf_from_paperid(literature_id, pdf_path, proxy=proxy)
+
+            if os.path.exists(pdf_path):
+                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({})).".format(
+                                    bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
+                                    bib['year'], os.path.relpath(pdf_path, note_file).split('/',1)[-1], 
+                                    bib['url'])
+            else:
+                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([link]({})).".format(
+                                    bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
+                                    bib['year'], bib['url']
+                                    )
+            replace_dict[literature] = replaced_literature
+        except:
+            logger.info("文献下载失败，已经跳过 {}".format(literature_id))
+        
+    return replace_dict 

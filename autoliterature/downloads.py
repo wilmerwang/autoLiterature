@@ -2,13 +2,10 @@ import logging
 import re 
 import os 
 
-from arxiv import arxivInfo
-from crossref import crossrefInfo
-from medbiorxiv import BMxivInfo
-from pdfs import pdfDownload
-
-# from config import PROXY
-PROXY = "127.0.0.1:7890"
+from .arxiv import arxivInfo
+from .crossref import crossrefInfo
+from .medbiorxiv import BMxivInfo
+from .pdfs import pdfDownload
 
 # log config
 logging.basicConfig()

@@ -8,7 +8,7 @@ except ImportError:
     from urllib.parse import quote
 from unidecode import unidecode
 
-from crossref import crossrefInfo
+from .crossref import crossrefInfo
 
 
 logging.basicConfig()

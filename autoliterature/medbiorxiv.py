@@ -2,7 +2,7 @@ import logging
 import requests 
 from bs4 import BeautifulSoup
 
-from crossref import crossrefInfo
+from .crossref import crossrefInfo
 
 logging.basicConfig()
 logger = logging.getLogger('biorxiv')

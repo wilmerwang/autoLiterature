@@ -1,13 +1,8 @@
 import logging 
 import argparse
 import os 
-import configparser
-from turtle import st
-from tqdm import tqdm 
 
-from utils import patternRecognizer, note_modified, get_pdf_paths, get_pdf_paths_from_notes
-from downloads import get_paper_info_from_paperid, get_paper_pdf_from_paperid
-
+from .utils import patternRecognizer, note_modified, get_pdf_paths, get_pdf_paths_from_notes, get_update_content, get_pdf_paths_from_notes_dict
 
 logging.basicConfig()
 logger = logging.getLogger('AutoLiter')
@@ -42,85 +37,45 @@ def check_args():
     return input_path, output_path, delete_bool, proxy, migration_path
 
 
-def get_bib_and_pdf(note_file, output_path, proxy, paper_recognizer, pdf=False):
+def get_bib_and_pdf(note_file, output_path, proxy, paper_recognizer):
     
-    pdfs_path = os.path.join(output_path, "pdfs")
+    pdfs_path = output_path
     if not os.path.exists(pdfs_path):
         os.makedirs(pdfs_path)
     
     with open(note_file, 'r') as f:
-            content = f.read()
+        content = f.read()
             
     m = paper_recognizer.findall(content)
-    if pdf:
-        logger.info("需要下载的文献(With PDF) 个数 - {}".format(len(m)))
-        logger.info(m)
-    else:
-        logger.info("需要下载的文献(Without PDF) 个数 -  {}".format(len(m)))
-        logger.info(m)
+    logger.info("需要下载的文献个数 -  {}".format(len(m)))
 
     if not m:
-        logger.info("文件 {} 未更新.".format(note_file))
+        logger.info("未找到需要下载的文献, 文件 {} 未更新.".format(note_file))
     else:
-        replace_dict = dict()
-        
-        for literature in tqdm(m):
-            literature_id = literature.split('{')[-1].split('}')[0]
-            bib = get_paper_info_from_paperid(literature_id, proxy=proxy)
-            try:
-                pdf_name = '_'.join(bib['title'].split(' ')) + '.pdf'
-                pdf_path = os.path.join(pdfs_path, pdf_name)
-                
-                if pdf:
-                    if not os.path.exists(pdf_path):
-                        get_paper_pdf_from_paperid(literature_id, pdf_path, direct_url=bib['pdf_link'], proxy=proxy)
-                        if not os.path.exists(pdf_path):
-                            get_paper_pdf_from_paperid(literature_id, pdf_path, proxy=proxy)
-
-                if os.path.exists(pdf_path):
-                    replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({})).".format(
-                                        bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
-                                        bib['year'], os.path.relpath(pdf_path, note_file).split('/',1)[-1], 
-                                        bib['url'])
-                    print(pdf_path, note_file)
-                else:
-                    replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([link]({})).".format(
-                                        bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
-                                        bib['year'], bib['url']
-                                        )
-                replace_dict[literature] = replaced_literature
-            except:
-                logger.info("文献下载失败，已经跳过 {}".format(literature_id))
+        # TODO add pd_online link in note file
+        replace_dict = get_update_content(m, note_file, pdfs_path, proxy=proxy)
             
         return replace_dict
 
 
-def file_update(input_path, output_path, proxy, paper_recognizer_with_pdf, 
-                paper_recognizer_without_pdf):
+def file_update(input_path, output_path, proxy, paper_recognizer):
     
-    replace_dict_with_pdf =  get_bib_and_pdf(input_path, output_path,
-                                             proxy, paper_recognizer_with_pdf,
-                                             pdf=True)
-    replace_dict_without_pdf = get_bib_and_pdf(input_path, output_path,
-                                               proxy, paper_recognizer_without_pdf)
+    replace_dict =  get_bib_and_pdf(input_path, output_path,
+                                    proxy, paper_recognizer)
     
-    if replace_dict_with_pdf:
-        note_modified(paper_recognizer_with_pdf, input_path, **replace_dict_with_pdf)
-    if replace_dict_without_pdf:
-        note_modified(paper_recognizer_without_pdf, input_path, **replace_dict_without_pdf)
+    if replace_dict:
+        note_modified(paper_recognizer, input_path, **replace_dict)
 
 
 def main():
     input_path, output_path, delete_bool, proxy, migration_path = check_args()
     
     if output_path:
-        paper_recognizer_with_pdf = patternRecognizer(r'- \{\{.{3,}\}\}')  # - {{doi}}
-        paper_recognizer_without_pdf = patternRecognizer(r'- \{(?!\{).{3,}\}')   # - {doi}  (?!\{)
+        paper_recognizer = patternRecognizer(r'- \{.{3,}\}')
         
         if os.path.isfile(input_path):
             logger.info("正在更新文件 {}".format(input_path))
-            file_update(input_path, output_path, proxy, paper_recognizer_with_pdf, 
-                    paper_recognizer_without_pdf)
+            file_update(input_path, output_path, proxy, paper_recognizer)
             
         elif os.path.isdir(input_path):
             note_paths = []
@@ -130,39 +85,65 @@ def main():
                         note_paths.append(os.path.join(root, file))
             for note_path in note_paths:
                 logger.info("正在更新文件 {}".format(note_path))
-                file_update(note_path, output_path, proxy, paper_recognizer_with_pdf, 
-                    paper_recognizer_without_pdf)
+                file_update(note_path, output_path, proxy, paper_recognizer)
         else:
             logger.info("input path {} is not exists".format(input_path))
     
     
-    # Delete unreferenced attachments
-    if delete_bool:
-        if os.path.isfile(input_path):
-            logger.info("输入的路径必须是笔记总文件夹!!!请谨慎使用该参数!!!")
-        else:
-            pdf_path_recognizer = patternRecognizer(r'\[pdf\]\(.{5,}\.pdf\)')
-            pdf_paths_in_notes = get_pdf_paths_from_notes(input_path, pdf_path_recognizer)
-            pdf_paths = get_pdf_paths(output_path)
-            # TODO mac 和 win 之间路径可能会不同，“/” 和 “\\”
-            pdf_paths_in_notes = [os.path.abspath(i) for i in pdf_paths_in_notes]
-            pdf_paths = [os.path.abspath(i) for i in pdf_paths]
-            
-            removed_pdf_paths = list(set(pdf_paths - set(pdf_paths_in_notes)))
-            try:
-                for pdf_p in removed_pdf_paths:
-                    os.remove(pdf_p)
-            except:
-                pass 
-            
-            logger.info("已删除 {} 个PDF文件".format(len(removed_pdf_paths)))
+        # Delete unreferenced attachments
+        if delete_bool:
+            if os.path.isfile(input_path):
+                logger.info("若要删除笔记无关PDF实体, 输入的路径必须是笔记总文件夹!!!请谨慎使用该参数!!!")
+            else:
+                pdf_path_recognizer = patternRecognizer(r'\[pdf\]\(.{5,}\.pdf\)')
+                pdf_paths_in_notes = get_pdf_paths_from_notes(input_path, pdf_path_recognizer)
+                pdf_paths = get_pdf_paths(output_path)
+                # TODO mac 和 win 之间路径可能会不同，“/” 和 “\\”
+                pdf_paths_in_notes = [os.path.abspath(i).replace('\\', '/') for i in pdf_paths_in_notes]
+                pdf_paths = [os.path.abspath(i).replace('\\', '/') for i in pdf_paths]
+                
+                removed_pdf_paths = list(set(pdf_paths) - set(pdf_paths_in_notes))
+                try:
+                    for pdf_p in removed_pdf_paths:
+                        os.remove(pdf_p)
+                except:
+                    pass 
+                
+                logger.info("已删除 {} 个PDF文件".format(len(removed_pdf_paths)))
             
     
     if migration_path:
-        logger.info("迁移功能还未添加,会尽快添加.")
-    
-    if not output_path and  not delete_bool and not migration_path:
-        logger.info("缺少关键参数 -o 或者 -d 或者 -m, 程序未运行, 请使用 -h 查看具体信息")
+        pdf_path_recognizer = patternRecognizer(r'\[pdf\]\(.{5,}\.pdf\)')
+        
+        pdf_paths = get_pdf_paths(migration_path)
+        pdf_paths_in_notes = get_pdf_paths_from_notes_dict(input_path, pdf_path_recognizer)
+        
+        # match based on paper title
+        matched_numb = 0
+        pdf_paths_dict = {os.path.basename(i): i for i in pdf_paths}
+        for md_file, pdf_paths_ in  pdf_paths_in_notes.items():
+                
+            pdf_paths_in_notes_dict = {os.path.basename(i): i for i in pdf_paths_}
+            matched_pdfs = pdf_paths_dict.keys() & pdf_paths_in_notes_dict.keys()
+            
+            matched_numb += len(matched_pdfs)
+
+            # os.path.relpath(pdf_path, note_file).split('/',1)[-1]
+            replace_paths_dict = {}
+            for matched in matched_pdfs:
+                replaced_str = os.path.relpath(pdf_paths_dict[matched], md_file).split('/',1)[-1]
+                replaced_str = "[pdf]({})".format(replaced_str)
+                ori_str = "[pdf]({})".format(pdf_paths_in_notes_dict[matched])
+                replace_paths_dict[ori_str] = replaced_str
+            
+            if replace_paths_dict: 
+                note_modified(pdf_path_recognizer, md_file, **replace_paths_dict)
+        
+        logger.info("共匹配到 - {} - 个PDF文件".format(matched_numb))
+        
+
+    if not output_path and not migration_path:
+        logger.info("缺少关键参数 -o 或者 -m, 程序未运行, 请使用 -h 查看具体信息")
 
 
 if __name__ == "__main__":
