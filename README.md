@@ -1,26 +1,32 @@
 # autoLiterature
 **autoLiterature**是一个基于Python的自动文献管理命令行工具。Inspired by [Mu Li](https://www.bilibili.com/video/BV1nA41157y4).   
 
-**重要：**  
-- [autoLiter_web](https://github.com/WilmerWang/autoLiter_web)是一个类似的web软件。
 
 **识别规则：**
-- 自动识别 `-{xxx}`。
-- 当笔记文件中包含`- {paper_id}`时候，仅会下载该文献的信息，**不下载PDF**。
+- 自动识别 `- {xxx}`。
+- 当笔记文件中包含`- {paper_id}`时候，会下载该文献的信息，**不下载PDF**。
 - 当笔记文件中包含`- {{paper_id}}`时候，会下载该文献的信息，以及PDF。
 
 注意：`paper_id`支持已发表文章的`doi`,预发布文章的`arvix_id`, `biorvix_id`, `medrvix_id`。
 
 ## 安装
-```
-pip3 install autoliter
-# 或者
+1. pip 安装
+```bash 
 pip install autoliter
+或者
+pip3 install autoliter
+```
+
+2. 源码安装
+```bash
+git clone https://github.com/WilmerWang/autoLiterature.git
+cd autoLiterature
+python setup.py install 
 ```
 
 ### 软件参数
 ```bash
-autoLiterature
+autolter
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -37,19 +43,32 @@ optional arguments:
 ```
 
 ## 使用
-```
-# 假设你要保存的pdf文件夹地址是 output = /home/cat/pdfs/
-# 假设你要更新的笔记文件夹地址是 input = /home/cat/notes/
-autoliter -i input -o output             # 更新input文件夹下所有md文件
-autoliter -i input/example.md -o output  # 仅更新input/example.md文件
+### 基本使用
+假设`input`为文献笔记(md文件)的文件夹路径，`output`为要保存PDF的文件夹路径。
 
-# -d 是个可选项，当 -i 是文件夹路径时候，使用-d会删除PDF文件夹下和笔记无关的pdf文件
+```bash
+# 更新input文件夹下所有md文件
+autoliter -i input -o output 
+
+# 仅更新input/example.md文件
+autoliter -i input/example.md -o output  
+
+# -d 是个可选项，当 -i 是文件夹路径时候，使用 -d 会删除PDF文件夹下和文献笔记内容无关的pdf文件
 autoliter -i input -o output -d
-
-# -m 是个可选项，表示要迁移的PDF文件夹路径，当-m存在时，会重新链接笔记和pdf文件下的文件
-autoliter -i input -m
-autoliter -i input -o output -m
-autoliter -i input -o output -d -m
 ```
+
+### 迁移笔记和PDF文件
+当要移动文献笔记或者PDF文件夹的时候，文献笔记中的PDF链接可能会变的无法使用。可以使用`-m`来重新关联PDF文件和文献笔记。
+
+```bash
+# 更新input文件夹下所有md文件
+autoliter -i input -m movedPDFs/
+
+# 仅更新input/example.md文件
+autoliter -i input/example.md -m movedPDFs/  
+```
+
+更多可以本地查看[jupyter note](doc/autolter_example.ipynb)，或者在线查看[github](https://github.com/WilmerWang/autoLiterature.git) doc文件夹。
+
 ## License
 MIT

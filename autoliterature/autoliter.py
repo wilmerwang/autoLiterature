@@ -15,7 +15,7 @@ def set_args():
                         help="The path to the note file or note file folder.")
     parser.add_argument('-o', '--output', type=str, default=None,
                         help='Folder path to save paper pdfs and iamges. NOTE: MUST BE FOLDER')
-    parser.add_argument('-p', '--proxy', type=str, default="127.0.0.1:7890", 
+    parser.add_argument('-p', '--proxy', type=str, default=None, 
                         help='The proxy. e.g. 127.0.0.1:1080')
     parser.add_argument('-d', '--delete', action='store_true',
                         help='Delete unreferenced attachments in notes. Use with caution, '
