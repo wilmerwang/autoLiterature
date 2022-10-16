@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='UTF-8') as f:
 
 setup(
     name="autoliter",
-    version="0.1.2",
+    version="0.1.3",
     description=" Helps you manage your literature notes",
     long_description=README_MD,
     long_description_content_type='text/markdown',
@@ -28,6 +28,6 @@ setup(
     license="AGPLv3",
     author="Wilmer Wang",
     author_email="wangwei0206@foxmail.com",
-    download_url="https://github.com/WilmerWang/autoLiterature/archive/refs/tags/v0.1.2.tar.gz",
+    download_url="https://github.com/WilmerWang/autoLiterature/archive/refs/tags/v0.1.3.tar.gz",
     keywords=["bibtex", "arxiv", "doi", "science", "scientific-journals"],
 )

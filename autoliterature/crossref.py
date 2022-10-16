@@ -47,9 +47,15 @@ class crossrefInfo(object):
             authors = "No author"
 
         if 'short-container-title' in bib.keys():
-            journal = bib['short-container-title'][0]
+            try:
+                journal = bib['short-container-title'][0]
+            except:
+                journal = "No journal"
         else:
-            journal = bib['container-title'][0]
+            try:
+                journal = bib['container-title'][0]
+            except:
+                journal = "No journal"
 
         bib_dict = {
             "title": bib['title'][0],
