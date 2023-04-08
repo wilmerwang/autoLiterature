@@ -4,6 +4,9 @@ import re
 from tqdm import tqdm 
 from .downloads import get_paper_info_from_paperid, get_paper_pdf_from_paperid
 
+import json
+from scholarly import scholarly
+
 logging.basicConfig()
 logger = logging.getLogger('utils')
 logger.setLevel(logging.INFO)
@@ -41,7 +44,7 @@ def note_modified(pattern_recog, md_file, **replace_dict):
     with open(md_file, 'w') as f:
         f.write(''.join(replaced_content))
         
- 
+
 def get_pdf_paths(pdf_root):
     pdf_paths = []
     for root, _, files in os.walk(pdf_root):
@@ -123,16 +126,19 @@ def get_update_content(m, note_file, pdfs_path, proxy):
                     get_paper_pdf_from_paperid(literature_id, pdf_path, direct_url=bib['pdf_link'], proxy=proxy)
                     if not os.path.exists(pdf_path):
                         get_paper_pdf_from_paperid(literature_id, pdf_path, proxy=proxy)
-
+            logger.info(f"Searching google scholar with title {bib['title']}")
+            pubs_iter = scholarly.search_pubs(bib['title'])
+            google_scholar_dict = next(pubs_iter)
+            # logger.info(google_scholar_dict['num_citations'])
             if os.path.exists(pdf_path):
-                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({})).".format(
+                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, **Number of Citations: **{}, ([pdf]({}))([link]({})).".format(
                                     bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
-                                    bib['year'], os.path.relpath(pdf_path, note_file).split('/',1)[-1], 
+                                    bib['year'], google_scholar_dict['num_citations'], os.path.relpath(pdf_path, note_file).split('/',1)[-1], 
                                     bib['url'])
             else:
-                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([link]({})).".format(
+                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, **Number of Citations: **{}, ([link]({})).".format(
                                     bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
-                                    bib['year'], bib['url']
+                                    bib['year'], google_scholar_dict['num_citations'], bib['url']
                                     )
             replace_dict[literature] = replaced_literature
         except:

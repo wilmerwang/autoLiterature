@@ -4,9 +4,13 @@ import os
 
 from .utils import patternRecognizer, note_modified, get_pdf_paths, get_pdf_paths_from_notes, get_update_content, get_pdf_paths_from_notes_dict
 
+from scholarly import scholarly, ProxyGenerator
+
 logging.basicConfig()
 logger = logging.getLogger('AutoLiter')
 logger.setLevel(logging.INFO)
+
+
 
 
 def set_args():
@@ -69,6 +73,15 @@ def file_update(input_path, output_path, proxy, paper_recognizer):
 
 def main():
     input_path, output_path, delete_bool, proxy, migration_path = check_args()
+    
+    logger.info("Setting up proxy for scholarly...")
+    # Set up a ProxyGenerator object to use free proxies
+    # This needs to be done only once per session
+    pg = ProxyGenerator()
+
+    sucess = pg.FreeProxies()
+    logger.info(f'Proxy setup sucess: {sucess}.')
+    scholarly.use_proxy(pg)
     
     if output_path:
         paper_recognizer = patternRecognizer(r'- \{.{3,}\}')
