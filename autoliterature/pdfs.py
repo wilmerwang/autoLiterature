@@ -119,7 +119,7 @@ if __name__ == "__main__":
     if pdf_dict:
         print(pdf_dict['url'])
         pdf_download.download(pdf_dict['pdf'] ,"/home/admin/tmp.pdf")
-        
+
     # pdf_dict2 = pdf_download.get_pdf_from_direct_url("https://arxiv.org/pdf/2208.05419.pdf")
     # if pdf_dict2:
     #     print(pdf_dict2['url'])

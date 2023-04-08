@@ -66,6 +66,7 @@ def file_update(input_path, output_path, proxy, paper_recognizer):
     
     replace_dict =  get_bib_and_pdf(input_path, output_path,
                                     proxy, paper_recognizer)
+    # logger.info(replace_dict)
     
     if replace_dict:
         note_modified(paper_recognizer, input_path, **replace_dict)
@@ -73,15 +74,6 @@ def file_update(input_path, output_path, proxy, paper_recognizer):
 
 def main():
     input_path, output_path, delete_bool, proxy, migration_path = check_args()
-    
-    logger.info("Setting up proxy for scholarly...")
-    # Set up a ProxyGenerator object to use free proxies
-    # This needs to be done only once per session
-    pg = ProxyGenerator()
-
-    sucess = pg.FreeProxies()
-    logger.info(f'Proxy setup sucess: {sucess}.')
-    scholarly.use_proxy(pg)
     
     if output_path:
         paper_recognizer = patternRecognizer(r'- \{.{3,}\}')
