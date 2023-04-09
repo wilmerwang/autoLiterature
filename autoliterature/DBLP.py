@@ -8,18 +8,18 @@ except ImportError:
     from urllib.parse import quote
 from unidecode import unidecode
 
-import json
-from scholarly import scholarly, ProxyGenerator
+import dblp
+import pandas as pd
 
 
 logging.basicConfig()
-logger = logging.getLogger('GoogleScholar')
+logger = logging.getLogger('DBLP')
 logger.setLevel(logging.DEBUG)
 HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:27.0) Gecko/20100101 Firefox/27.0'}
 
-class GscholarInfo(object):
+class DBLPInfo(object):
     
-    def set_proxy(self, proxy_name = "free", proxy_address = None):
+    def set_proxy(self, proxy_address = None):
         """set proxy handler
         
         Aargs: 
@@ -28,15 +28,7 @@ class GscholarInfo(object):
         Returns:
             A proxy handler object.
         """
-        if proxy_address:
-            sucess = False
-            pg = ProxyGenerator()
-            if proxy_name == "free":
-                sucess = pg.FreeProxies()
-            elif proxy_name == "single":
-                sucess = pg.SingleProxy(http = proxy_address, https = proxy_address)
-            logger.info(f'Proxy setup sucess: {sucess}.')
-            scholarly.use_proxy(pg)
+        pass
             
     
     def extract_json_info(self, item):
@@ -48,30 +40,33 @@ class GscholarInfo(object):
         Returns:
             A dict containing the paper information.
         """
-        bib_dict = None
         trial_num = 0
-        
         while trial_num<10:
+            trial_num+=1
             try:
-                trial_num+=1
-                pubs_iter = scholarly.search_pubs(item)
-                dictinfo = next(pubs_iter)
-                # logger.info(dictinfo)
-                bib_dict = {
-                    "title": dictinfo['bib']['title'].replace('\n', ''),
-                    "author": ' and '.join(dictinfo['bib']['author']),
-                    "journal": dictinfo['bib']['venue'],
-                    "year": dictinfo['bib']['pub_year'],
-                    "url": dictinfo['pub_url'],
-                    "pdf_link": dictinfo['eprint_url'],
-                    "cited_count": dictinfo['num_citations']
-                }
+                results = dblp.search([item])
                 break
             except:
-                pass
+                if trial_num == 10:
+                    results = pd.DataFrame({'A' : []})
+                else:
+                    pass
         
+            
+        
+        if not results.empty:
+            bib_dict = {
+                "title": str(results['Title'][0]),
+                "author": ' and '.join([str(Entry) for Entry in results['Authors'][0]]),
+                "journal": str(results['Where'][0]),
+                "year": str(results['Year'][0]),
+                "url": str(results['Link'][0]),
+                "pdf_link": None,
+                "cited_count": None
+            }
+        else: 
+            bib_dict = None
         return bib_dict
-
             
     
     def get_info_by_title(self, title):
@@ -97,15 +92,18 @@ class GscholarInfo(object):
             
             
 if __name__ == "__main__":
-    arxivId = "2208.05623"
-    title = "Heterogeneous Graph Attention Network"
+    # arxivId = "2208.05623"
+    # title = "Heterogeneous Graph Attention Network"
     
-    gscholar_info = GscholarInfo()
-    gscholar_info.set_proxy(proxy_name='single')
+    # gscholar_info = GscholarInfo()
+    # gscholar_info.set_proxy(proxy_name='single')
     
-    bib_arxiv = gscholar_info.get_info_by_title(title)
-    # bib_title = arxiv_info.get_info_by_title(title)
+    # bib_arxiv = gscholar_info.get_info_by_title(title)
+    # # bib_title = arxiv_info.get_info_by_title(title)
     
-    print(bib_arxiv)
-    print("\n")
-    # print(bib_title)
+    # print(bib_arxiv)
+    # print("\n")
+    # # print(bib_title)
+    results = dblp.search(["Finetunedlanguage models are zero-shot learners"])
+
+    print(results)

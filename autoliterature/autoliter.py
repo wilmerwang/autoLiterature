@@ -21,6 +21,8 @@ def set_args():
                         help='Folder path to save paper pdfs and iamges. NOTE: MUST BE FOLDER')
     parser.add_argument('-p', '--proxy', type=str, default=None, 
                         help='The proxy. e.g. 127.0.0.1:1080')
+    parser.add_argument('-gp', '--gproxy_mode', type=str, default='free', 
+                        help='The proxy type used for scholarly. e.g., free, single')
     parser.add_argument('-d', '--delete', action='store_true',
                         help='Delete unreferenced attachments in notes. Use with caution, '
                         'when used, -i must be a folder path including all notes')
