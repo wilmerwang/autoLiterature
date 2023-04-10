@@ -1,0 +1,16 @@
+README.md
+setup.py
+autoliter.egg-info/PKG-INFO
+autoliter.egg-info/SOURCES.txt
+autoliter.egg-info/dependency_links.txt
+autoliter.egg-info/entry_points.txt
+autoliter.egg-info/requires.txt
+autoliter.egg-info/top_level.txt
+autoliterature/__init__.py
+autoliterature/arxiv.py
+autoliterature/autoliter.py
+autoliterature/crossref.py
+autoliterature/downloads.py
+autoliterature/medbiorxiv.py
+autoliterature/pdfs.py
+autoliterature/utils.py

@@ -4,9 +4,13 @@ import os
 
 from .utils import patternRecognizer, note_modified, get_pdf_paths, get_pdf_paths_from_notes, get_update_content, get_pdf_paths_from_notes_dict
 
+from scholarly import scholarly, ProxyGenerator
+
 logging.basicConfig()
 logger = logging.getLogger('AutoLiter')
 logger.setLevel(logging.INFO)
+
+
 
 
 def set_args():
@@ -17,6 +21,8 @@ def set_args():
                         help='Folder path to save paper pdfs and iamges. NOTE: MUST BE FOLDER')
     parser.add_argument('-p', '--proxy', type=str, default=None, 
                         help='The proxy. e.g. 127.0.0.1:1080')
+    parser.add_argument('-gp', '--gproxy_mode', type=str, default='free', 
+                        help='The proxy type used for scholarly. e.g., free, single')
     parser.add_argument('-d', '--delete', action='store_true',
                         help='Delete unreferenced attachments in notes. Use with caution, '
                         'when used, -i must be a folder path including all notes')
@@ -62,6 +68,7 @@ def file_update(input_path, output_path, proxy, paper_recognizer):
     
     replace_dict =  get_bib_and_pdf(input_path, output_path,
                                     proxy, paper_recognizer)
+    # logger.info(replace_dict)
     
     if replace_dict:
         note_modified(paper_recognizer, input_path, **replace_dict)

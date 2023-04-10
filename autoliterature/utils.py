@@ -2,7 +2,10 @@ import os
 import logging
 import re 
 from tqdm import tqdm 
-from .downloads import get_paper_info_from_paperid, get_paper_pdf_from_paperid
+from .downloads import get_paper_info_from_paperid, get_paper_pdf_from_paperid, classify
+
+import json
+from scholarly import scholarly
 
 logging.basicConfig()
 logger = logging.getLogger('utils')
@@ -41,7 +44,7 @@ def note_modified(pattern_recog, md_file, **replace_dict):
     with open(md_file, 'w') as f:
         f.write(''.join(replaced_content))
         
- 
+
 def get_pdf_paths(pdf_root):
     pdf_paths = []
     for root, _, files in os.walk(pdf_root):
@@ -119,20 +122,33 @@ def get_update_content(m, note_file, pdfs_path, proxy):
             pdf_path = os.path.join(pdfs_path, pdf_name)
             
             if pdf:
-                if not os.path.exists(pdf_path):
-                    get_paper_pdf_from_paperid(literature_id, pdf_path, direct_url=bib['pdf_link'], proxy=proxy)
+                id_type = classify(literature_id)
+                # logger.info(f"the literid: {literature_id}; classified as: {id_type}")
+                if id_type == "title":
+                    for pattern_str in [r'10\.(?!1101)[0-9]{4}/', r'10\.1101/', r'[0-9]{2}[0-1][0-9]\.[0-9]{3,}', r'.*/[0-9]{2}[0-1][0-9]{4}']:
+                        res = re.search(pattern_str, bib['url'])
+                        if res:
+                            literature_id = res.group(0)
+                            logger.info(f"The paper's url: {bib['url']}; The converted id: {literature_id}")
                     if not os.path.exists(pdf_path):
-                        get_paper_pdf_from_paperid(literature_id, pdf_path, proxy=proxy)
-
+                        get_paper_pdf_from_paperid(literature_id, pdf_path, direct_url=bib['pdf_link'], proxy=proxy)
+                        if not os.path.exists(pdf_path):
+                            get_paper_pdf_from_paperid(literature_id, pdf_path, proxy=proxy)
+                else:
+                    if not os.path.exists(pdf_path):
+                        get_paper_pdf_from_paperid(literature_id, pdf_path, direct_url=bib['pdf_link'], proxy=proxy)
+                        if not os.path.exists(pdf_path):
+                            get_paper_pdf_from_paperid(literature_id, pdf_path, proxy=proxy)
+            # logger.info(bib['journal'])
             if os.path.exists(pdf_path):
-                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([pdf]({}))([link]({})).".format(
+                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, **Number of Citations: **{}, ([pdf]({}))([link]({})).".format(
                                     bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
-                                    bib['year'], os.path.relpath(pdf_path, note_file).split('/',1)[-1], 
+                                    bib['year'], bib['cited_count'], os.path.relpath(pdf_path, note_file).split('/',1)[-1], 
                                     bib['url'])
             else:
-                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, ([link]({})).".format(
+                replaced_literature = "- **{}**. {} et.al. **{}**, **{}**, **Number of Citations: **{}, ([link]({})).".format(
                                     bib['title'], bib["author"].split(" and ")[0], bib['journal'], 
-                                    bib['year'], bib['url']
+                                    bib['year'], bib['cited_count'], bib['url']
                                     )
             replace_dict[literature] = replaced_literature
         except:

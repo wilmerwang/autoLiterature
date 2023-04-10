@@ -5,6 +5,8 @@ import os
 from .arxiv import arxivInfo
 from .crossref import crossrefInfo
 from .medbiorxiv import BMxivInfo
+from .GoogleScholar import GscholarInfo
+from .DBLP import DBLPInfo
 from .pdfs import pdfDownload
 
 # log config
@@ -64,7 +66,17 @@ def get_paper_info_from_paperid(paper_id, proxy=None):
         bib_dict = downloader.get_info_by_bmrxivid(paper_id)
 
     elif id_type == "title":
-        pass 
+        downloader1 = GscholarInfo()
+        downloader1.set_proxy(proxy_address=proxy)
+        bib_dict = downloader1.get_info_by_title(paper_id)
+        
+        downloader2 = DBLPInfo()
+        downloader2.set_proxy(proxy_address=proxy)
+        bib_dict1 = downloader2.get_info_by_title(paper_id)
+        if bib_dict is not None and bib_dict1 is not None:
+            bib_dict['journal'] = bib_dict1['journal']
+        elif bib_dict is None and bib_dict1 is not None:
+            bib_dict = bib_dict1
     else:
         pass 
     
@@ -85,7 +97,6 @@ def get_paper_pdf_from_paperid(paper_id, path, proxy=None, direct_url=None):
             content = pdf_downloader.get_pdf_from_sci_hub(paper_id)
     else:
         content = pdf_downloader.get_pdf_from_sci_hub(paper_id)
-    
     try:
         if not os.path.exists(path.rsplit("/", 1)[0]):
             os.makedirs(path.rsplit("/", 1)[0])
@@ -97,12 +108,20 @@ def get_paper_pdf_from_paperid(paper_id, path, proxy=None, direct_url=None):
 
 
 if __name__ == "__main__":
-    doi = "10.1016/j.wneu.2012.11.074"
-    arxiv_id = "2208.05623"
-    medbiorxiv_id = "10.1101/2022.07.28.22277637"
-    undefine_name = "sjsldjfnadijjsl;kjdjf"
+    # doi = "10.1016/j.wneu.2012.11.074"
+    # arxiv_id = "2208.05623"
+    # medbiorxiv_id = "10.1101/2022.07.28.22277637"
+    # undefine_name = "sjsldjfnadijjsl;kjdjf"
     
-    print(get_paper_info_from_paperid(doi))
-    print(get_paper_info_from_paperid(arxiv_id))
-    print(get_paper_info_from_paperid(medbiorxiv_id))
-    print(get_paper_info_from_paperid(undefine_name))
+    # print(get_paper_info_from_paperid(doi))
+    # print(get_paper_info_from_paperid(arxiv_id))
+    # print(get_paper_info_from_paperid(medbiorxiv_id))
+    # print(get_paper_info_from_paperid(undefine_name))
+    
+    urltest = "https://arxiv.org/pdf/1810.04805.pdf&usg=ALkJrhhzxlCL6yTht2BRmH9atgvKFxHsxQ"
+    # for pattern_str in [r'10\.(?!1101)[0-9]{4}/', r'10\.1101/', r'[0-9]{2}[0-1][0-9]\.[0-9]{3,}', r'.*/[0-9]{2}[0-1][0-9]{4}']:
+    #     res = re.search(pattern_str, urltest)
+    #     if res:
+    #         literature_id = res.group()
+    #         logger.info(f"The original url: {urltest}; The converted id: {literature_id}")
+    get_paper_pdf_from_paperid(None, '/Users/olivernova/Library/Mobile Documents/com~apple~CloudDocs/Papers/autoLiterature/test.pdf', direct_url=urltest)
