@@ -55,10 +55,18 @@ class DBLPInfo(object):
             
         
         if not results.empty:
+            if 'CoRR' in [str(venue) for venue in results['Where']]:
+                journal = 'CoRR'
+            for venue in results['Where']:
+                if str(venue) != 'CoRR':
+                    journal = str(venue)
+                    break
+                    
+            str(results['Where'])
             bib_dict = {
                 "title": str(results['Title'][0]),
                 "author": ' and '.join([str(Entry) for Entry in results['Authors'][0]]),
-                "journal": str(results['Where'][0]),
+                "journal": journal,
                 "year": str(results['Year'][0]),
                 "url": str(results['Link'][0]),
                 "pdf_link": None,

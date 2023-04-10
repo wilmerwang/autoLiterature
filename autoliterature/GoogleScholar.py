@@ -28,6 +28,7 @@ class GscholarInfo(object):
         Returns:
             A proxy handler object.
         """
+        # TODO find a better proxy strategy
         if proxy_address:
             sucess = False
             pg = ProxyGenerator()
