@@ -116,6 +116,8 @@ def get_update_content(m, note_file, pdfs_path, proxy):
         
         try:
             pdf_name = '_'.join(bib['title'].split(' ')) + '.pdf'
+            # rep specific symbol with '_'
+            pdf_name = re.sub(r"[<>:\"/\\|?*\n\r\x00-\x1F\x7F']", '_', pdf_name)
             pdf_path = os.path.join(pdfs_path, pdf_name)
             
             if pdf:
