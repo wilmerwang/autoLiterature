@@ -1,0 +1,112 @@
+[project]
+name = "autoliterature"
+version = "1.0.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+default-groups = []
+
+[dependency-groups]
+dev = [
+  {include-group = "lint"},
+  {include-group = "test"},
+  {include-group = "precommit"}
+]
+lint = [
+    "ruff>=0.12.7",
+]
+precommit = [
+    "pre-commit>=4.2.0",
+]
+test = [
+    "pytest>=8.4.1",
+]
+
+[tool.pytest.ini_options]
+addopts = [
+  "--color=yes",
+  "--durations=0",
+  "--strict-markers",
+  "--doctest-modules",
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+  "ignore::UserWarning",
+]
+log_cli = "True"
+markers = [
+  "slow: slow tests",
+]
+minversion = "6.0"
+testpaths = "tests/"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: nocover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "A",    # see: https://pypi.org/project/flake8-builtins
+    "ANN",  # see: https://pypi.org/project/flake8-annotations
+    "B",    # see: https://pypi.org/project/flake8-bugbear
+    "C4",   # see: https://pypi.org/project/flake8-comprehensions
+    "D",    # see: https://pypi.org/project/pydocstyle
+    "E",    # see: https://pypi.org/project/pycodestyle
+    "EXE",  # see: https://pypi.org/project/flake8-executable
+    "F",    # see: https://pypi.org/project/pyflakes
+    "I",    # see: https://pypi.org/project/isort/
+    "ISC",  # see: https://pypi.org/project/flake8-implicit-str-concat
+    "N",    # see: https://pypi.org/project/pep8-naming
+    "PERF", # see: https://pypi.org/project/perflint/
+    "PIE",  # see: https://pypi.org/project/flake8-pie
+    "PLC",  # see: https://pypi.org/project/pylint/
+    "PLE",  # all Pylint errors except Refactor (R)
+    "PLW",
+    "PT",   # see: https://pypi.org/project/flake8-pytest-style
+    "Q",    # see: https://pypi.org/project/flake8-quotes
+    "RET",  # see: https://pypi.org/project/flake8-return
+    "RUF",  # Ruff-specific rules
+    "S",    # see: https://pypi.org/project/flake8-bandit
+    "SIM",  # see: https://pypi.org/project/flake8-simplify
+    "T10",  # see: https://pypi.org/project/flake8-debugger
+    "TID",  # see: https://pypi.org/project/flake8-tidy-imports/
+    "UP",   # see: https://docs.astral.sh/ruff/rules/#pyupgrade-up
+    "W",    # see: https://pypi.org/project/pycodestyle
+]
+ignore = [
+    # Do not require type hints for *args and **kwargs
+    "ANN002",
+    "ANN003",
+    # Allow use of Any type
+    "ANN401",
+    # Do not require docstrings in __init__ and modules
+    "D100",
+    "D104",
+    # Allow use of assert
+    "S101",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.docformatter]
+recursive = true
+wrap-summaries=120
+wrap-descriptions=120

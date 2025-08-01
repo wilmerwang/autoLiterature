@@ -1,0 +1,10 @@
+# Normalize all text files to use LF (Unix-style) in repo
+* text=auto eol=lf
+
+# Explicitly force common source files to use LF
+*.py text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.json text eol=lf
